@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexData - Vade Mecum LegalTech & Analytics</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        legal: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            500: '#334e68',
+                            800: '#102a43',
+                            900: '#0b1b2b',
+                            accent: '#d97706',
+                            gold: '#b45309'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN for Legal Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SheetJS for Excel Import/Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.5);
+        }
+        .reading-serif {
+            font-family: 'Merriweather', Georgia, serif;
+        }
+        .highlight-match {
+            background-color: #fef08a;
+            color: #854d0e;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+        .dark .highlight-match {
+            background-color: #854d0e;
+            color: #fef08a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 h-full flex flex-col font-sans transition-colors duration-200">
+
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand & Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-amber-500 text-slate-900 p-2 rounded-lg font-bold text-lg flex items-center justify-center w-10 h-10 shadow-inner">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                            LexData <span class="text-xs bg-amber-500/20 text-amber-400 font-semibold px-2 py-0.5 rounded border border-amber-500/30">LegalTech 3.0</span>
+                        </h1>
+                        <p class="text-xs text-slate-400">Inteligência, Leitura e Metas da Legislação</p>
+                    </div>
+                </div>
+
+                <!-- Global Actions -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Data Inspector Trigger -->
+                    <button onclick="openDataInspectorModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-sm" title="Inspecionar Leis e Conteúdo Atual">
+                        <i class="fa-solid fa-database"></i>
+                        <span class="hidden md:inline">Ver Base de Dados</span>
+                    </button>
+
+                    <!-- Export Data Button -->
+                    <button onclick="exportCurrentDataToExcel()" class="hidden md:flex bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 transition items-center gap-2" title="Baixar base em Excel">
+                        <i class="fa-solid fa-download text-amber-400"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+
+                    <!-- Excel Import Button -->
+                    <label class="cursor-pointer bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-file-excel text-sm"></i>
+                        <span class="hidden sm:inline">Importar Excel</span>
+                        <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
+                    </label>
+
+                    <!-- Font Mode Toggle -->
+                    <button onclick="toggleReadingFont()" id="fontToggleBtn" title="Alternar Serif / Sans" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition">
+                        <i class="fa-solid fa-font text-sm"></i>
+                    </button>
+
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Modo Noturno">
+                        <i class="fa-solid fa-moon text-sm dark:hidden"></i>
+                        <i class="fa-solid fa-sun text-sm hidden dark:block text-amber-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Source Information Banner -->
+    <div id="dataSourceBanner" class="bg-amber-500/10 border-b border-amber-500/20 py-2 px-4 text-xs text-amber-900 dark:text-amber-200">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-amber-500"></i>
+                <span id="dataSourceText">Base Ativa: <strong>Amostra Demonstrativa Reduzida</strong> (Para carregar todos os seus artigos, use o botão <strong>Importar Excel</strong>).</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="downloadSampleTemplate()" class="underline hover:text-amber-600 font-medium text-[11px]">
+                    <i class="fa-solid fa-file-arrow-down mr-1"></i>Baixar Modelo Excel
+                </button>
+                <button onclick="openDataInspectorModal()" class="underline font-bold hover:text-amber-600 text-[11px]">
+                    Ver artigos carregados agora
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap items-center justify-between gap-4 py-2">
+                <!-- Navigation Tabs -->
+                <nav class="flex space-x-1 sm:space-x-2">
+                    <button onclick="switchTab('reader')" id="tab-reader" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Leitor & Hierarquia</span>
+                    </button>
+                    <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Dashboard Estatístico</span>
+                    </button>
+                    <button onclick="switchTab('goals')" id="tab-goals" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="fa-solid fa-bullseye"></i>
+                        <span>Metas & Cronograma</span>
+                    </button>
+                    <button onclick="switchTab('flashcards')" id="tab-flashcards" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Cardex / Revisão</span>
+                    </button>
+                </nav>
+
+                <!-- Quick Legal Status Badge -->
+                <div class="hidden lg:flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                    <span id="activeDiplomasCount" class="font-medium text-slate-700 dark:text-slate-200"><i class="fa-solid fa-layer-group text-slate-400 mr-1"></i> -- Diplomas</span>
+                    <span id="activeArticlesCount" class="font-medium text-slate-700 dark:text-slate-200"><i class="fa-solid fa-gavel text-slate-400 mr-1"></i> -- Artigos</span>
+                    <span id="globalProgressText" class="font-semibold text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check mr-1"></i> 0% Concluído</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 overflow-hidden flex flex-col">
+        
+        <!-- ================= SECTION 1: LEITOR E HIERARQUIA ================= -->
+        <section id="view-reader" class="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+            <!-- Sidebar Filters -->
+            <aside class="w-full lg:w-80 flex-shrink-0 flex flex-col gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-y-auto">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xs font-bold tracking-wider text-slate-500 uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-filter text-amber-500"></i> Filtros de Pesquisa
+                    </h2>
+                    <button onclick="resetFilters()" class="text-xs text-amber-600 dark:text-amber-400 hover:underline font-normal">Limpar</button>
+                </div>
+
+                <!-- Diploma Filter -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Diploma Legal</label>
+                    <select id="diplomaSelect" onchange="applyFilters()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs font-medium focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="ALL">Todos os Diplomas Legais</option>
+                    </select>
+                </div>
+
+                <!-- Real-time Keyword Search -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Busca Textual ou Número do Artigo</label>
+                    <div class="relative">
+                        <input type="text" id="searchInput" oninput="debounceFilter()" placeholder="Ex: Art. 5º, legítima defesa..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Filter by Device Type -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Estrutura Legal</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" value="Caput" checked onchange="applyFilters()" class="filter-type rounded text-amber-500 focus:ring-amber-400">
+                            <span>Caput</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" value="Parágrafo" checked onchange="applyFilters()" class="filter-type rounded text-amber-500 focus:ring-amber-400">
+                            <span>Parágrafos</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" value="Inciso" checked onchange="applyFilters()" class="filter-type rounded text-amber-500 focus:ring-amber-400">
+                            <span>Incisos</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" value="Alínea" checked onchange="applyFilters()" class="filter-type rounded text-amber-500 focus:ring-amber-400">
+                            <span>Alíneas</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Read Status & Bookmarks Filter -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Status de Estudo</label>
+                    <select id="statusFilter" onchange="applyFilters()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs outline-none">
+                        <option value="ALL">Todos os Artigos</option>
+                        <option value="UNREAD">Pendente de Leitura</option>
+                        <option value="READ">Lidos Concluídos</option>
+                        <option value="BOOKMARKED">Marcados com Estrela ⭐</option>
+                        <option value="HAS_NOTES">Com Anotações Pessoais 📝</option>
+                    </select>
+                </div>
+
+                <!-- Quick Article Jump List -->
+                <div class="flex-1 min-h-[140px] flex flex-col">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Índice Rápido de Artigos</label>
+                    <div id="quickArticleIndex" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 overflow-y-auto space-y-1 text-xs">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Legal Reader Container -->
+            <div class="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden">
+                <!-- Reader Controls Top Bar -->
+                <div class="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-3">
+                    <div id="readerHeaderInfo">
+                        <h2 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <span id="currentDiplomaTitle">Navegação da Legislação</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400" id="resultsCount">Processando artigos...</p>
+                    </div>
+
+                    <!-- Layout Controls & Expand/Collapse All -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="stopAudio()" id="stopAudioBtn" class="hidden text-xs bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded transition items-center gap-1">
+                            <i class="fa-solid fa-square"></i> Parar Áudio
+                        </button>
+                        <button onclick="expandAllArticles(true)" class="text-xs bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-2.5 py-1.5 rounded text-slate-700 dark:text-slate-200 transition" title="Expandir Todos">
+                            <i class="fa-solid fa-angles-down mr-1"></i> Expandir
+                        </button>
+                        <button onclick="expandAllArticles(false)" class="text-xs bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-2.5 py-1.5 rounded text-slate-700 dark:text-slate-200 transition" title="Recolher Todos">
+                            <i class="fa-solid fa-angles-up mr-1"></i> Recolher
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Articles Legal Stream -->
+                <div id="articlesContainer" class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 text-sm leading-relaxed transition-all">
+                    <!-- Dynamic Legal Articles Stream Rendered Here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 2: DASHBOARD DE ANALYTICS ================= -->
+        <section id="view-analytics" class="hidden flex-1 overflow-y-auto space-y-6">
+            <!-- KPI Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1: Diplomas Legais -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 p-3 rounded-lg text-2xl">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Diplomas Legais</p>
+                        <h3 id="kpiTotalDiplomas" class="text-2xl font-bold text-slate-800 dark:text-slate-100">0</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Normas no acervo</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Total Artigos -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 p-3 rounded-lg text-2xl">
+                        <i class="fa-solid fa-gavel"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total de Artigos</p>
+                        <h3 id="kpiTotalArticles" class="text-2xl font-bold text-slate-800 dark:text-slate-100">0</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Artigos catalogados</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Dispositivos Individuais -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 p-3 rounded-lg text-2xl">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Dispositivos</p>
+                        <h3 id="kpiTotalDevices" class="text-2xl font-bold text-slate-800 dark:text-slate-100">0</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Caput, incisos & parágrafos</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Volume & Tempo Estimado -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 p-3 rounded-lg text-2xl">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Tempo Est. de Leitura</p>
+                        <h3 id="kpiEstimatedTime" class="text-2xl font-bold text-slate-800 dark:text-slate-100">0 min</h3>
+                        <p class="text-xs text-slate-400 mt-0.5" id="kpiTotalWords">0 palavras</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Bar Chart: Dispositivos por Diploma Legal -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-amber-500"></i> Dispositivos por Diploma Legal
+                    </h3>
+                    <div class="flex-1 relative min-h-[260px]">
+                        <canvas id="chartDiplomas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart: Tipos de Dispositivo -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-blue-500"></i> Estrutura Normativa (Tipos)
+                    </h3>
+                    <div class="flex-1 relative min-h-[260px]">
+                        <canvas id="chartDeviceTypes"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Volume Table -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-table-list text-emerald-500"></i> Detalhamento por Norma Legal
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="bg-slate-100 dark:bg-slate-700/50 uppercase text-slate-500 dark:text-slate-400">
+                            <tr>
+                                <th class="p-3 rounded-l-lg">Diploma Legal</th>
+                                <th class="p-3">Artigos</th>
+                                <th class="p-3">Dispositivos</th>
+                                <th class="p-3">Densidade</th>
+                                <th class="p-3">Palavras</th>
+                                <th class="p-3 rounded-r-lg">Progresso</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 3: GERADOR DE METAS DE LEITURA ================= -->
+        <section id="view-goals" class="hidden flex-1 overflow-y-auto space-y-6">
+            <!-- Goal Configuration Header -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="max-w-2xl mx-auto space-y-6 text-center">
+                    <div>
+                        <span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                            Cronograma de Estudos
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-2">Planejador Diário de Leitura</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Monitore seu ritmo de leitura e alcance suas metas estabelecendo hábitos diários.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Artigos por Dia</label>
+                            <input type="number" id="dailyGoalInput" min="1" max="100" value="10" onchange="generateReadingSchedule()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold text-center focus:ring-2 focus:ring-amber-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Filtrar Norma</label>
+                            <select id="goalDiplomaSelect" onchange="generateReadingSchedule()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                                <option value="ALL">Todos os Diplomas</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Estimativa Conclusão</label>
+                            <div id="daysToFinishBadge" class="w-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg p-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 text-center">
+                                Calculando...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-1">
+                            <span class="text-slate-600 dark:text-slate-400">Conclusão dos Artigos</span>
+                            <span id="readingProgressPercentage" class="text-emerald-600 dark:text-emerald-400">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                            <div id="readingProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reading Schedule Container -->
+            <div id="scheduleContainer" class="space-y-4">
+                <!-- Days schedule populated dynamically -->
+            </div>
+        </section>
+
+        <!-- ================= SECTION 4: CARDEX / REVISÃO DE FLASHCARDS ================= -->
+        <section id="view-flashcards" class="hidden flex-1 overflow-y-auto space-y-6">
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                    <span class="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Revisão Ativa & Memorização
+                    </span>
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 mt-2">Cardex de Fixação Jurídica</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Teste seus conhecimentos tentando lembrar do texto do artigo antes de revelar o dispositivo.
+                    </p>
+
+                    <!-- Flashcard Card Component -->
+                    <div class="mt-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-8 min-h-[220px] flex flex-col justify-between shadow-inner transition">
+                        <div>
+                            <span id="flashcardDiploma" class="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-2.5 py-1 rounded">
+                                Diploma Legal
+                            </span>
+                            <h3 id="flashcardArticle" class="text-xl font-bold text-slate-800 dark:text-slate-100 mt-3">
+                                Artigo --
+                            </h3>
+                        </div>
+
+                        <!-- Article Content (Hidden/Revealed) -->
+                        <div id="flashcardBody" class="my-4 text-sm text-slate-600 dark:text-slate-300 italic">
+                            Clique em "Revelar Texto" para testar sua memorização.
+                        </div>
+
+                        <div class="flex items-center justify-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <button onclick="revealFlashcard()" id="revealBtn" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs px-4 py-2 rounded-lg transition">
+                                <i class="fa-solid fa-eye mr-1"></i> Revelar Texto
+                            </button>
+                            <button onclick="nextFlashcard()" class="bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition">
+                                <i class="fa-solid fa-forward mr-1"></i> Próximo Card
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Notes Modal -->
+    <div id="notesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-lg p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                <h3 id="modalArticleTitle" class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-500"></i> Anotação Pessoal
+                </h3>
+                <button onclick="closeNotesModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            
+            <textarea id="notesTextArea" rows="5" placeholder="Escreva suas doutrinas, jurisprudências ou observações sobre este artigo..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-3 text-xs outline-none focus:ring-2 focus:ring-amber-500 text-slate-800 dark:text-slate-100"></textarea>
+
+            <div class="flex items-center justify-end gap-2">
+                <button onclick="closeNotesModal()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                    Cancelar
+                </button>
+                <button onclick="saveNoteFromModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition">
+                    Salvar Anotação
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Inspector Modal -->
+    <div id="dataInspectorModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl p-6 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-database text-amber-500"></i> Gerenciador & Inspecionador da Base de Dados
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="inspectorSourceDetails">Origem dos dados ativos</p>
+                </div>
+                <button onclick="closeDataInspectorModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="py-4 space-y-4 overflow-y-auto flex-1">
+                <!-- Data Status summary -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg text-center border border-slate-200 dark:border-slate-700">
+                        <span class="block text-[11px] text-slate-500 font-medium">Diplomas Únicos</span>
+                        <span id="inspectorCountDiplomas" class="text-lg font-bold text-amber-500">0</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg text-center border border-slate-200 dark:border-slate-700">
+                        <span class="block text-[11px] text-slate-500 font-medium">Artigos Únicos</span>
+                        <span id="inspectorCountArticles" class="text-lg font-bold text-blue-500">0</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg text-center border border-slate-200 dark:border-slate-700">
+                        <span class="block text-[11px] text-slate-500 font-medium">Linhas/Dispositivos</span>
+                        <span id="inspectorCountRows" class="text-lg font-bold text-emerald-500">0</span>
+                    </div>
+                </div>
+
+                <!-- Detailed Breakdown per Law -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
+                        Lista de Leis e Artigos Presentes na Memória
+                    </h4>
+                    <div id="inspectorLawList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Explanation / Instructions Box -->
+                <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 rounded-xl p-3 text-xs text-blue-900 dark:text-blue-200 space-y-1.5">
+                    <p class="font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-question text-blue-500"></i> Por que faltavam leis ou artigos?
+                    </p>
+                    <p class="leading-relaxed">
+                        A plataforma inicia por padrão com uma <strong>amostra reduzida de demonstração</strong> (para manter o carregamento leve e rápido). Para analisar e estudar suas próprias leis na íntegra, basta importar seu arquivo Excel contendo as colunas: <code>Diploma Legal</code>, <code>Artigo</code>, <code>Tipo de Dispositivo</code>, <code>Identificador</code> e <code>Texto do Dispositivo</code>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                <button onclick="resetToDefaultSample()" class="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>Restaurar Amostra Inicial
+                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="downloadSampleTemplate()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200">
+                        <i class="fa-solid fa-download mr-1"></i>Baixar Modelo .xlsx
+                    </button>
+                    <button onclick="closeDataInspectorModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
+        <i id="toastIcon" class="fa-solid fa-circle-info text-amber-400"></i>
+        <span id="toastMsg" class="text-xs font-medium">Notificação</span>
+    </div>
+
+    <script>
+        // Initial Sample Data Store (Brazilian Legal Framework Sample)
+        const initialSampleData = [
+            // --- CONSTITUIÇÃO FEDERAL DE 1988 ---
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 1º", "Texto do Dispositivo": "A República Federativa do Brasil, formada pela união indissolúvel dos Estados e Municípios e do Distrito Federal, constitui-se em Estado Democrático de Direito e tem como fundamentos:" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Inciso", "Identificador": "I", "Texto do Dispositivo": "a soberania;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Inciso", "Identificador": "II", "Texto do Dispositivo": "a cidadania;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Inciso", "Identificador": "III", "Texto do Dispositivo": "a dignidade da pessoa humana;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Inciso", "Identificador": "IV", "Texto do Dispositivo": "os valores sociais do trabalho e da livre iniciativa;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Inciso", "Identificador": "V", "Texto do Dispositivo": "o pluralismo político." },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Parágrafo", "Identificador": "Parágrafo único", "Texto do Dispositivo": "Todo o poder emana do povo, que o exerce por meio de representantes eleitos ou diretamente, nos termos desta Constituição." },
+
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 5º", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 5º", "Texto do Dispositivo": "Todos são iguais perante a lei, sem distinção de qualquer natureza, garantindo-se aos brasileiros e aos estrangeiros residentes no País a inviolabilidade do direito à vida, à liberdade, à igualdade, à segurança e à propriedade, nos termos seguintes:" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 5º", "Tipo de Dispositivo": "Inciso", "Identificador": "I", "Texto do Dispositivo": "homens e mulheres são iguais em direitos e obrigações, nos termos desta Constituição;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 5º", "Tipo de Dispositivo": "Inciso", "Identificador": "II", "Texto do Dispositivo": "ninguém será obrigado a fazer ou deixar de fazer alguma coisa senão em virtude de lei;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 5º", "Tipo de Dispositivo": "Inciso", "Identificador": "III", "Texto do Dispositivo": "ninguém será submetido a tortura nem a tratamento desumano ou degradante;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 5º", "Tipo de Dispositivo": "Inciso", "Identificador": "LIV", "Texto do Dispositivo": "ninguém será privado da liberdade ou de seus bens sem o devido processo legal;" },
+            { "Diploma Legal": "Constituição Federal", "Artigo": "Art. 5º", "Tipo de Dispositivo": "Inciso", "Identificador": "LV", "Texto do Dispositivo": "aos litigantes, em processo judicial ou administrative, e aos acusados em geral são assegurados o contraditório e ampla defesa, com os meios e recursos a ela inerentes;" },
+
+            // --- CÓDIGO PENAL (CP) ---
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 1º", "Texto do Dispositivo": "Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal." },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 23", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 23", "Texto do Dispositivo": "Não há crime quando o agente pratica o fato:" },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 23", "Tipo de Dispositivo": "Inciso", "Identificador": "I", "Texto do Dispositivo": "em estado de necessidade;" },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 23", "Tipo de Dispositivo": "Inciso", "Identificador": "II", "Texto do Dispositivo": "em legítima defesa;" },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 23", "Tipo de Dispositivo": "Inciso", "Identificador": "III", "Texto do Dispositivo": "em estrito cumprimento de dever legal ou no exercício regular de direito." },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 23", "Tipo de Dispositivo": "Parágrafo", "Identificador": "Parágrafo único", "Texto do Dispositivo": "O agente, em qualquer das hipóteses deste artigo, responderá pelo excesso doloso ou culposo." },
+
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 121", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 121", "Texto do Dispositivo": "Matar alguém: Pena - reclusão, de seis a vinte anos." },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 121", "Tipo de Dispositivo": "Parágrafo", "Identificador": "§ 1º", "Texto do Dispositivo": "Se o agente comete o crime impelido por motivo de relevante valor social ou moral, ou sob o domínio de violenta emoção, logo em seguida a injusta provocação da vítima, o juiz pode reduzir a pena de um sexto a um terço." },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 121", "Tipo de Dispositivo": "Parágrafo", "Identificador": "§ 2º", "Texto do Dispositivo": "Se o homicídio é cometido:" },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 121", "Tipo de Dispositivo": "Inciso", "Identificador": "I", "Texto do Dispositivo": "mediante paga ou promessa de recompensa, ou por outro motivo torpe;" },
+            { "Diploma Legal": "Código Penal", "Artigo": "Art. 121", "Tipo de Dispositivo": "Inciso", "Identificador": "II", "Texto do Dispositivo": "por motivo fútil;" },
+
+            // --- CÓDIGO DE PROCESSO CIVIL (CPC) ---
+            { "Diploma Legal": "Código de Processo Civil", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 1º", "Texto do Dispositivo": "O processo civil será ordenado, disciplinado e interpretado conforme os valores e as normas fundamentais estabelecidos na Constituição da República Federativa do Brasil, observando-se as disposições deste Código." },
+            { "Diploma Legal": "Código de Processo Civil", "Artigo": "Art. 319", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 319", "Texto do Dispositivo": "A petição inicial indicará:" },
+            { "Diploma Legal": "Código de Processo Civil", "Artigo": "Art. 319", "Tipo de Dispositivo": "Inciso", "Identificador": "I", "Texto do Dispositivo": "o juízo a que é dirigida;" },
+            { "Diploma Legal": "Código de Processo Civil", "Artigo": "Art. 319", "Tipo de Dispositivo": "Inciso", "Identificador": "II", "Texto do Dispositivo": "os nomes, os prenomes, o estado civil, a existência de união estável, a profissão, o cadastro de pessoas físicas ou o cadastro nacional da pessoa jurídica, o endereço eletrônico, o domicílio e a residência do autor e do réu;" },
+            { "Diploma Legal": "Código de Processo Civil", "Artigo": "Art. 319", "Tipo de Dispositivo": "Inciso", "Identificador": "III", "Texto do Dispositivo": "o fato e os fundamentos jurídicos do pedido;" },
+
+            // --- CÓDIGO CIVIL (CC) ---
+            { "Diploma Legal": "Código Civil", "Artigo": "Art. 1º", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 1º", "Texto do Dispositivo": "Toda pessoa é capaz de direitos e deveres na ordem civil." },
+            { "Diploma Legal": "Código Civil", "Artigo": "Art. 186", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 186", "Texto do Dispositivo": "Aquele que, por ação ou omissão voluntária, negligência ou imprudência, violar direito e causar dano a outrem, ainda que exclusivamente moral, comete ato ilícito." },
+            { "Diploma Legal": "Código Civil", "Artigo": "Art. 927", "Tipo de Dispositivo": "Caput", "Identificador": "Art. 927", "Texto do Dispositivo": "Aquele que, por ato ilícito (arts. 186 e 187), causar dano a outrem, fica obrigado a repará-lo." },
+            { "Diploma Legal": "Código Civil", "Artigo": "Art. 927", "Tipo de Dispositivo": "Parágrafo", "Identificador": "Parágrafo único", "Texto do Dispositivo": "Haverá obrigação de reparar o dano, independentemente de culpa, nos casos especificados em lei, ou quando a atividade normalmente desenvolvida pelo autor do dano implicar, por sua natureza, risco para os direitos de outrem." }
+        ];
+
+        let legalData = [...initialSampleData];
+        let dataOriginInfo = "Amostra Demonstrativa Reduzida";
+
+        let readStatus = JSON.parse(localStorage.getItem('lexdata_read_status') || '{}');
+        let bookmarked = JSON.parse(localStorage.getItem('lexdata_bookmarks') || '{}');
+        let userNotes = JSON.parse(localStorage.getItem('lexdata_notes') || '{}');
+        let collapsedArticles = {};
+        let debounceTimer = null;
+        let chartDiplomasInstance = null;
+        let chartDeviceTypesInstance = null;
+        let currentModalArtKey = null;
+        let currentFlashcardIndex = 0;
+
+        // Initialize App on DOM Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+
+        function initApp() {
+            populateDiplomaSelects();
+            applyFilters();
+            updateGlobalProgress();
+            generateReadingSchedule();
+            updateDataSourceBanner();
+        }
+
+        function updateDataSourceBanner() {
+            const banner = document.getElementById('dataSourceText');
+            if (banner) {
+                const uniqueArts = [...new Set(legalData.map(i => `${i["Diploma Legal"]}_${i["Artigo"]}`))].length;
+                if (dataOriginInfo.includes("Importado")) {
+                    banner.innerHTML = `Base Ativa: <strong class="text-emerald-700 dark:text-emerald-300"><i class="fa-solid fa-file-excel mr-1"></i>${dataOriginInfo}</strong> (${uniqueArts} artigos em ${legalData.length} dispositivos).`;
+                } else {
+                    banner.innerHTML = `Base Ativa: <strong>Amostra Demonstrativa Reduzida</strong> (${uniqueArts} artigos de exemplo). Para incluir suas próprias leis completas, use <strong>Importar Excel</strong>.`;
+                }
+            }
+        }
+
+        function openDataInspectorModal() {
+            const uniqueDiplomas = [...new Set(legalData.map(i => i["Diploma Legal"]))];
+            const uniqueArts = [...new Set(legalData.map(i => `${i["Diploma Legal"]}_${i["Artigo"]}`))];
+
+            document.getElementById('inspectorCountDiplomas').textContent = uniqueDiplomas.length;
+            document.getElementById('inspectorCountArticles').textContent = uniqueArts.length;
+            document.getElementById('inspectorCountRows').textContent = legalData.length;
+            document.getElementById('inspectorSourceDetails').textContent = `Origem: ${dataOriginInfo}`;
+
+            const lawListContainer = document.getElementById('inspectorLawList');
+            lawListContainer.innerHTML = uniqueDiplomas.map(d => {
+                const artsForLaw = [...new Set(legalData.filter(i => i["Diploma Legal"] === d).map(i => i["Artigo"]))];
+                const totalRows = legalData.filter(i => i["Diploma Legal"] === d).length;
+
+                return `
+                    <div class="bg-slate-50 dark:bg-slate-900/80 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                        <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-100">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-scale-unbalanced text-amber-500"></i> ${d}</span>
+                            <span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-2 py-0.5 rounded text-[10px]">${artsForLaw.length} artigo(s) / ${totalRows} disp.</span>
+                        </div>
+                        <div class="mt-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-mono truncate">
+                            Artigos presentes: ${artsForLaw.join(', ')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('dataInspectorModal').classList.remove('hidden');
+        }
+
+        function closeDataInspectorModal() {
+            document.getElementById('dataInspectorModal').classList.add('hidden');
+        }
+
+        function resetToDefaultSample() {
+            legalData = [...initialSampleData];
+            dataOriginInfo = "Amostra Demonstrativa Reduzida";
+            populateDiplomaSelects();
+            applyFilters();
+            updateGlobalProgress();
+            generateReadingSchedule();
+            updateDataSourceBanner();
+            closeDataInspectorModal();
+            showToast('Base restaurada para a amostra inicial.', 'fa-rotate-left text-amber-400');
+        }
+
+        function downloadSampleTemplate() {
+            try {
+                const worksheet = XLSX.utils.json_to_sheet(initialSampleData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Modelo_Legislação");
+                XLSX.writeFile(workbook, "Modelo_Importacao_VadeMecum.xlsx");
+                showToast('Modelo Excel baixado!', 'fa-file-arrow-down text-emerald-400');
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao baixar modelo.', 'fa-circle-exclamation text-rose-400');
+            }
+        }
+
+        function populateDiplomaSelects() {
+            const diplomas = [...new Set(legalData.map(item => item["Diploma Legal"]))];
+            
+            const selectReader = document.getElementById('diplomaSelect');
+            const selectGoals = document.getElementById('goalDiplomaSelect');
+
+            const optionsHTML = '<option value="ALL">Todos os Diplomas Legais</option>' + 
+                diplomas.map(d => `<option value="${d}">${d}</option>`).join('');
+
+            selectReader.innerHTML = optionsHTML;
+            selectGoals.innerHTML = optionsHTML;
+
+            document.getElementById('activeDiplomasCount').innerHTML = `<i class="fa-solid fa-layer-group text-slate-400 mr-1"></i> ${diplomas.length} Diplomas`;
+        }
+
+        function debounceFilter() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(applyFilters, 250);
+        }
+
+        function resetFilters() {
+            document.getElementById('diplomaSelect').value = 'ALL';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = 'ALL';
+            document.querySelectorAll('.filter-type').forEach(cb => cb.checked = true);
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const selectedDiploma = document.getElementById('diplomaSelect').value;
+            const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+            const statusVal = document.getElementById('statusFilter').value;
+            
+            const activeTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(cb => cb.value);
+
+            // Filter raw devices
+            let filtered = legalData.filter(item => {
+                // Diploma Filter
+                if (selectedDiploma !== 'ALL' && item["Diploma Legal"] !== selectedDiploma) return false;
+
+                // Type Filter
+                const type = item["Tipo de Dispositivo"] || "Caput";
+                if (!activeTypes.includes(type)) return false;
+
+                // Search Keyword
+                if (searchVal !== '') {
+                    const matchText = (item["Texto do Dispositivo"] || '').toLowerCase().includes(searchVal);
+                    const matchArt = (item["Artigo"] || '').toLowerCase().includes(searchVal);
+                    const matchId = (item["Identificador"] || '').toLowerCase().includes(searchVal);
+                    if (!matchText && !matchArt && !matchId) return false;
+                }
+
+                // Status & Bookmark Filter
+                const key = `${item["Diploma Legal"]}_${item["Artigo"]}`;
+                const isRead = !!readStatus[key];
+                const isBookmarked = !!bookmarked[key];
+                const hasNote = !!userNotes[key];
+
+                if (statusVal === 'READ' && !isRead) return false;
+                if (statusVal === 'UNREAD' && isRead) return false;
+                if (statusVal === 'BOOKMARKED' && !isBookmarked) return false;
+                if (statusVal === 'HAS_NOTES' && !hasNote) return false;
+
+                return true;
+            });
+
+            const grouped = groupDataByArticle(filtered);
+            renderArticlesTree(grouped, searchVal);
+            renderQuickIndex(grouped);
+        }
+
+        function groupDataByArticle(items) {
+            const map = {};
+
+            items.forEach(item => {
+                const diploma = item["Diploma Legal"];
+                const art = item["Artigo"];
+                const key = `${diploma}__${art}`;
+
+                if (!map[key]) {
+                    map[key] = {
+                        diploma: diploma,
+                        artigo: art,
+                        caput: null,
+                        paragrafos: [],
+                        incisos: [],
+                        alineas: [],
+                        others: []
+                    };
+                }
+
+                const type = (item["Tipo de Dispositivo"] || '').trim();
+                
+                if (type.toLowerCase() === 'caput') {
+                    map[key].caput = item;
+                } else if (type.toLowerCase().includes('parágrafo') || type.toLowerCase().includes('paragrafo')) {
+                    map[key].paragrafos.push(item);
+                } else if (type.toLowerCase().includes('inciso')) {
+                    map[key].incisos.push(item);
+                } else if (type.toLowerCase().includes('alínea') || type.toLowerCase().includes('alinea')) {
+                    map[key].alineas.push(item);
+                } else {
+                    map[key].others.push(item);
+                }
+            });
+
+            return Object.values(map);
+        }
+
+        function renderArticlesTree(groupedArticles, searchVal) {
+            const container = document.getElementById('articlesContainer');
+            const countElem = document.getElementById('resultsCount');
+
+            if (groupedArticles.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                        <p class="text-sm font-semibold">Nenhum dispositivo encontrado para os filtros selecionados.</p>
+                        <p class="text-xs mt-1">Tente buscar por termos genéricos ou abra a base para conferir os artigos carregados.</p>
+                        <button onclick="openDataInspectorModal()" class="mt-3 text-xs bg-amber-500 hover:bg-amber-600 text-white font-semibold px-3 py-1.5 rounded-lg transition">
+                            Inspecionar Base de Dados
+                        </button>
+                    </div>
+                `;
+                countElem.textContent = '0 artigos encontrados';
+                return;
+            }
+
+            countElem.textContent = `${groupedArticles.length} artigo(s) exibido(s)`;
+
+            let html = '';
+
+            groupedArticles.forEach(artGroup => {
+                const articleKey = `${artGroup.diploma}_${artGroup.artigo}`;
+                const isRead = !!readStatus[articleKey];
+                const isStar = !!bookmarked[articleKey];
+                const noteText = userNotes[articleKey] || '';
+                const isCollapsed = !!collapsedArticles[articleKey];
+
+                html += `
+                    <div class="bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-600">
+                        <!-- Article Header & Action Buttons -->
+                        <div class="flex flex-wrap items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700/80 gap-2 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold text-xs px-2.5 py-1 rounded border border-amber-500/20">
+                                    ${artGroup.diploma}
+                                </span>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">${highlightText(artGroup.artigo, searchVal)}</h3>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 sm:gap-2">
+                                <!-- Read Aloud TTS -->
+                                <button onclick="speakArticleText('${articleKey}')" class="p-1.5 text-slate-400 hover:text-amber-500 transition" title="Ouvir em Áudio">
+                                    <i class="fa-solid fa-volume-high text-xs"></i>
+                                </button>
+
+                                <!-- Star / Bookmark -->
+                                <button onclick="toggleBookmark('${articleKey}')" class="p-1.5 transition ${isStar ? 'text-amber-500' : 'text-slate-400 hover:text-amber-400'}" title="Favoritar Artigo">
+                                    <i class="fa-${isStar ? 'solid' : 'regular'} fa-star text-xs"></i>
+                                </button>
+
+                                <!-- Personal Note Button -->
+                                <button onclick="openNotesModal('${articleKey}')" class="p-1.5 transition ${noteText ? 'text-blue-500' : 'text-slate-400 hover:text-blue-400'}" title="Anotação Pessoal">
+                                    <i class="fa-solid fa-note-sticky text-xs"></i>
+                                </button>
+
+                                <!-- Mark Read Button -->
+                                <button onclick="toggleArticleRead('${articleKey}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${isRead ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300'}">
+                                    <i class="fa-solid ${isRead ? 'fa-circle-check text-emerald-500' : 'fa-circle'}"></i>
+                                    <span>${isRead ? 'Lido' : 'Marcar Lido'}</span>
+                                </button>
+
+                                <!-- Collapse Toggle -->
+                                <button onclick="toggleCollapseArticle('${articleKey}')" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                    <i class="fa-solid ${isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'} text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Personal Notes Banner if exists -->
+                        ${noteText ? `
+                            <div class="mb-3 p-2.5 bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 rounded-r text-xs text-blue-900 dark:text-blue-200 flex items-start justify-between">
+                                <div>
+                                    <span class="font-bold block mb-0.5"><i class="fa-solid fa-quote-left mr-1"></i>Sua Anotação:</span>
+                                    <span>${noteText}</span>
+                                </div>
+                                <button onclick="openNotesModal('${articleKey}')" class="text-blue-600 dark:text-blue-400 hover:underline text-[11px] ml-2 font-medium">Editar</button>
+                            </div>
+                        ` : ''}
+
+                        <!-- Article Content Tree -->
+                        <div class="${isCollapsed ? 'hidden' : 'space-y-3'}" id="content-${articleKey}">
+                            <!-- Caput -->
+                            ${artGroup.caput ? `
+                                <div class="text-slate-800 dark:text-slate-100 font-medium leading-relaxed">
+                                    <span class="text-amber-700 dark:text-amber-400 font-bold mr-1">${artGroup.caput["Identificador"]}:</span>
+                                    ${highlightText(artGroup.caput["Texto do Dispositivo"], searchVal)}
+                                </div>
+                            ` : ''}
+
+                            <!-- Incisos (Nested) -->
+                            ${artGroup.incisos.length > 0 ? `
+                                <div class="pl-4 sm:pl-6 space-y-2 border-l-2 border-amber-500/30">
+                                    ${artGroup.incisos.map(inc => `
+                                        <div class="text-slate-700 dark:text-slate-200 text-xs sm:text-sm">
+                                            <span class="font-bold text-slate-900 dark:text-slate-100 mr-1.5">${inc["Identificador"]} -</span>
+                                            ${highlightText(inc["Texto do Dispositivo"], searchVal)}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+
+                            <!-- Parágrafos -->
+                            ${artGroup.paragrafos.length > 0 ? `
+                                <div class="pl-2 sm:pl-4 space-y-2 mt-3">
+                                    ${artGroup.paragrafos.map(p => `
+                                        <div class="bg-white dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80">
+                                            <div class="font-semibold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">
+                                                <span class="text-amber-600 dark:text-amber-400 mr-1">${p["Identificador"]}</span>
+                                                ${highlightText(p["Texto do Dispositivo"], searchVal)}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+
+                            <!-- Alíneas -->
+                            ${artGroup.alineas.length > 0 ? `
+                                <div class="pl-8 sm:pl-10 space-y-1 border-l-2 border-slate-300 dark:border-slate-700 text-xs">
+                                    ${artGroup.alineas.map(al => `
+                                        <div class="text-slate-600 dark:text-slate-300">
+                                            <span class="font-bold text-amber-600 dark:text-amber-400 mr-1">${al["Identificador"]})</span>
+                                            ${highlightText(al["Texto do Dispositivo"], searchVal)}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function speakArticleText(artKey) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+
+                const contentElem = document.getElementById(`content-${artKey}`);
+                if (!contentElem) return;
+
+                const textToRead = contentElem.innerText;
+                const utterance = new SpeechSynthesisUtterance(textToRead);
+                utterance.lang = 'pt-BR';
+                utterance.rate = 1.0;
+
+                document.getElementById('stopAudioBtn').classList.remove('hidden');
+
+                utterance.onend = () => {
+                    document.getElementById('stopAudioBtn').classList.add('hidden');
+                };
+
+                window.speechSynthesis.speak(utterance);
+                showToast('Iniciando reprodução em áudio...', 'fa-volume-high text-amber-400');
+            } else {
+                showToast('Seu navegador não suporta leitura em áudio.', 'fa-circle-exclamation text-rose-400');
+            }
+        }
+
+        function stopAudio() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                document.getElementById('stopAudioBtn').classList.add('hidden');
+                showToast('Áudio interrompido.', 'fa-square text-amber-400');
+            }
+        }
+
+        function renderQuickIndex(grouped) {
+            const indexContainer = document.getElementById('quickArticleIndex');
+            if (grouped.length === 0) {
+                indexContainer.innerHTML = '<span class="text-slate-400 italic text-[11px]">Sem resultados</span>';
+                return;
+            }
+
+            indexContainer.innerHTML = grouped.map(g => `
+                <button onclick="scrollToArticle('${g.diploma}_${g.artigo}')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 truncate flex items-center justify-between text-slate-700 dark:text-slate-300">
+                    <span class="font-medium">${g.artigo}</span>
+                    <span class="text-[10px] text-slate-400">${g.diploma}</span>
+                </button>
+            `).join('');
+        }
+
+        function scrollToArticle(artKey) {
+            collapsedArticles[artKey] = false;
+            applyFilters();
+            
+            setTimeout(() => {
+                const container = document.getElementById('articlesContainer');
+                const targetElem = container.querySelector(`[onclick*="${artKey}"]`)?.closest('.bg-slate-50');
+                if (targetElem) {
+                    targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    targetElem.classList.add('ring-2', 'ring-amber-500');
+                    setTimeout(() => targetElem.classList.remove('ring-2', 'ring-amber-500'), 2000);
+                }
+            }, 100);
+        }
+
+        function highlightText(text, search) {
+            if (!text) return '';
+            if (!search) return text;
+            const regex = new RegExp(`(${escapeRegExp(search)})`, 'gi');
+            return text.replace(regex, '<mark class="highlight-match">$1</mark>');
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function toggleBookmark(artKey) {
+            bookmarked[artKey] = !bookmarked[artKey];
+            localStorage.setItem('lexdata_bookmarks', JSON.stringify(bookmarked));
+            applyFilters();
+            showToast(bookmarked[artKey] ? 'Artigo adicionado aos favoritos ⭐' : 'Removido dos favoritos', 'fa-star text-amber-400');
+        }
+
+        function openNotesModal(artKey) {
+            currentModalArtKey = artKey;
+            const noteText = userNotes[artKey] || '';
+            document.getElementById('modalArticleTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i> Anotação: ${artKey.replace('_', ' - ')}`;
+            document.getElementById('notesTextArea').value = noteText;
+            document.getElementById('notesModal').classList.remove('hidden');
+        }
+
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.add('hidden');
+            currentModalArtKey = null;
+        }
+
+        function saveNoteFromModal() {
+            if (!currentModalArtKey) return;
+            const text = document.getElementById('notesTextArea').value.trim();
+            if (text) {
+                userNotes[currentModalArtKey] = text;
+            } else {
+                delete userNotes[currentModalArtKey];
+            }
+            localStorage.setItem('lexdata_notes', JSON.stringify(userNotes));
+            closeNotesModal();
+            applyFilters();
+            showToast('Anotação salva com sucesso!', 'fa-floppy-disk text-emerald-400');
+        }
+
+        function toggleArticleRead(artKey) {
+            readStatus[artKey] = !readStatus[artKey];
+            localStorage.setItem('lexdata_read_status', JSON.stringify(readStatus));
+            applyFilters();
+            updateGlobalProgress();
+            generateReadingSchedule();
+            
+            showToast(readStatus[artKey] ? 'Artigo marcado como LIDO' : 'Artigo marcado como PENDENTE', readStatus[artKey] ? 'fa-circle-check text-emerald-400' : 'fa-circle text-amber-400');
+        }
+
+        function toggleCollapseArticle(artKey) {
+            collapsedArticles[artKey] = !collapsedArticles[artKey];
+            applyFilters();
+        }
+
+        function expandAllArticles(expand) {
+            legalData.forEach(item => {
+                const key = `${item["Diploma Legal"]}_${item["Artigo"]}`;
+                collapsedArticles[key] = !expand;
+            });
+            applyFilters();
+        }
+
+        function updateGlobalProgress() {
+            const uniqueArticles = [...new Set(legalData.map(i => `${i["Diploma Legal"]}_${i["Artigo"]}`))];
+            const total = uniqueArticles.length;
+            const readCount = uniqueArticles.filter(key => !!readStatus[key]).length;
+
+            const percentage = total > 0 ? Math.round((readCount / total) * 100) : 0;
+
+            document.getElementById('activeArticlesCount').innerHTML = `<i class="fa-solid fa-gavel text-slate-400 mr-1"></i> ${total} Artigos`;
+            document.getElementById('globalProgressText').innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> ${percentage}% Concluído`;
+
+            const progressBar = document.getElementById('readingProgressBar');
+            const progressPercentage = document.getElementById('readingProgressPercentage');
+            if (progressBar && progressPercentage) {
+                progressBar.style.width = `${percentage}%`;
+                progressPercentage.textContent = `${percentage}% (${readCount}/${total} artigos lidos)`;
+            }
+        }
+
+        function renderAnalytics() {
+            const diplomas = [...new Set(legalData.map(i => i["Diploma Legal"]))];
+            const totalDevices = legalData.length;
+            const uniqueArticles = [...new Set(legalData.map(i => `${i["Diploma Legal"]}_${i["Artigo"]}`))];
+
+            let totalWords = 0;
+            legalData.forEach(item => {
+                if (item["Texto do Dispositivo"]) {
+                    totalWords += item["Texto do Dispositivo"].split(/\s+/).filter(Boolean).length;
+                }
+            });
+
+            // Estimated reading time (average 180 words/minute for legal reading)
+            const estMinutes = Math.ceil(totalWords / 180);
+
+            document.getElementById('kpiTotalDiplomas').textContent = diplomas.length;
+            document.getElementById('kpiTotalArticles').textContent = uniqueArticles.length;
+            document.getElementById('kpiTotalDevices').textContent = totalDevices;
+            document.getElementById('kpiEstimatedTime').textContent = `${estMinutes} min`;
+            document.getElementById('kpiTotalWords').textContent = `${totalWords.toLocaleString('pt-BR')} palavras`;
+
+            const devicesByDiploma = {};
+            const articlesByDiploma = {};
+
+            diplomas.forEach(d => {
+                devicesByDiploma[d] = legalData.filter(i => i["Diploma Legal"] === d).length;
+                articlesByDiploma[d] = [...new Set(legalData.filter(i => i["Diploma Legal"] === d).map(i => i["Artigo"]))].length;
+            });
+
+            const typeCounts = {
+                'Caput': 0,
+                'Parágrafo': 0,
+                'Inciso': 0,
+                'Alínea': 0,
+                'Outros': 0
+            };
+
+            legalData.forEach(item => {
+                const type = (item["Tipo de Dispositivo"] || '').trim().toLowerCase();
+                if (type === 'caput') typeCounts['Caput']++;
+                else if (type.includes('parágrafo') || type.includes('paragrafo')) typeCounts['Parágrafo']++;
+                else if (type.includes('inciso')) typeCounts['Inciso']++;
+                else if (type.includes('alínea') || type.includes('alinea')) typeCounts['Alínea']++;
+                else typeCounts['Outros']++;
+            });
+
+            const tableBody = document.getElementById('analyticsTableBody');
+            tableBody.innerHTML = diplomas.map(d => {
+                const arts = articlesByDiploma[d] || 0;
+                const devs = devicesByDiploma[d] || 0;
+                const density = arts > 0 ? (devs / arts).toFixed(1) : '0';
+                
+                const words = legalData
+                    .filter(i => i["Diploma Legal"] === d)
+                    .reduce((acc, curr) => acc + (curr["Texto do Dispositivo"] || '').split(/\s+/).filter(Boolean).length, 0);
+
+                const readInDip = [...new Set(legalData.filter(i => i["Diploma Legal"] === d).map(i => i["Artigo"]))]
+                    .filter(art => !!readStatus[`${d}_${art}`]).length;
+
+                const dipPct = arts > 0 ? Math.round((readInDip / arts) * 100) : 0;
+
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+                        <td class="p-3 font-semibold text-slate-800 dark:text-slate-200">${d}</td>
+                        <td class="p-3">${arts}</td>
+                        <td class="p-3">${devs}</td>
+                        <td class="p-3"><span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-2 py-0.5 rounded font-medium">${density} disp/art</span></td>
+                        <td class="p-3">${words.toLocaleString('pt-BR')}</td>
+                        <td class="p-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-16 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full" style="width: ${dipPct}%"></div>
+                                </div>
+                                <span class="font-bold text-xs">${dipPct}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Chart 1: Bar Chart (Diplomas)
+            const ctx1 = document.getElementById('chartDiplomas').getContext('2d');
+            if (chartDiplomasInstance) chartDiplomasInstance.destroy();
+
+            chartDiplomasInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: diplomas,
+                    datasets: [{
+                        label: 'Dispositivos',
+                        data: diplomas.map(d => devicesByDiploma[d]),
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(156, 163, 175, 0.1)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Chart 2: Doughnut Chart (Types)
+            const ctx2 = document.getElementById('chartDeviceTypes').getContext('2d');
+            if (chartDeviceTypesInstance) chartDeviceTypesInstance.destroy();
+
+            chartDeviceTypesInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(typeCounts),
+                    datasets: [{
+                        data: Object.values(typeCounts),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#64748b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } }
+                }
+            });
+        }
+
+        function generateReadingSchedule() {
+            const dailyGoal = parseInt(document.getElementById('dailyGoalInput').value) || 10;
+            const selectedDiploma = document.getElementById('goalDiplomaSelect').value;
+
+            let filtered = legalData;
+            if (selectedDiploma !== 'ALL') {
+                filtered = legalData.filter(i => i["Diploma Legal"] === selectedDiploma);
+            }
+
+            const uniqueArticleKeys = [...new Set(filtered.map(i => `${i["Diploma Legal"]}__${i["Artigo"]}`))];
+            const totalArticles = uniqueArticleKeys.length;
+
+            const daysNeeded = Math.ceil(totalArticles / dailyGoal) || 1;
+            document.getElementById('daysToFinishBadge').textContent = `${daysNeeded} dia(s) estimado(s)`;
+
+            const scheduleContainer = document.getElementById('scheduleContainer');
+            scheduleContainer.innerHTML = '';
+
+            for (let day = 0; day < daysNeeded; day++) {
+                const dayArticles = uniqueArticleKeys.slice(day * dailyGoal, (day + 1) * dailyGoal);
+                
+                const dayReadCount = dayArticles.filter(key => {
+                    const parts = key.split('__');
+                    return !!readStatus[`${parts[0]}_${parts[1]}`];
+                }).length;
+
+                const dayComplete = dayReadCount === dayArticles.length && dayArticles.length > 0;
+
+                const dayCard = document.createElement('div');
+                dayCard.className = `bg-white dark:bg-slate-800 p-5 rounded-xl border ${dayComplete ? 'border-emerald-500/50 bg-emerald-50/10' : 'border-slate-200 dark:border-slate-700'} shadow-sm`;
+
+                dayCard.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full ${dayComplete ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'} text-xs flex items-center justify-center font-bold">
+                                ${day + 1}
+                            </span>
+                            Dia ${day + 1} de Estudo
+                        </h3>
+                        <span class="text-xs font-semibold ${dayComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'}">
+                            ${dayReadCount}/${dayArticles.length} lidos
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                        ${dayArticles.map(key => {
+                            const [diploma, artigo] = key.split('__');
+                            const statusKey = `${diploma}_${artigo}`;
+                            const isRead = !!readStatus[statusKey];
+
+                            return `
+                                <div onclick="toggleArticleRead('${statusKey}')" class="p-2.5 rounded-lg border text-xs cursor-pointer transition flex items-center justify-between ${isRead ? 'bg-emerald-50 border-emerald-300 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-200' : 'bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 hover:border-amber-400'}">
+                                    <div>
+                                        <div class="font-bold">${artigo}</div>
+                                        <div class="text-[10px] opacity-75">${diploma}</div>
+                                    </div>
+                                    <i class="fa-solid ${isRead ? 'fa-circle-check text-emerald-500 text-sm' : 'fa-circle text-slate-300 dark:text-slate-700'}"></i>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+                scheduleContainer.appendChild(dayCard);
+            }
+        }
+
+        // Active Recall Flashcards Logic
+        function loadFlashcard() {
+            const uniqueArticles = [...new Set(legalData.map(i => `${i["Diploma Legal"]}__${i["Artigo"]}`))];
+            if (uniqueArticles.length === 0) return;
+
+            if (currentFlashcardIndex >= uniqueArticles.length) currentFlashcardIndex = 0;
+            const [diploma, artigo] = uniqueArticles[currentFlashcardIndex].split('__');
+
+            document.getElementById('flashcardDiploma').textContent = diploma;
+            document.getElementById('flashcardArticle').textContent = artigo;
+            document.getElementById('flashcardBody').innerHTML = '<span class="italic text-slate-400">Clique em "Revelar Texto" para conferir a norma.</span>';
+            document.getElementById('revealBtn').classList.remove('hidden');
+        }
+
+        function revealFlashcard() {
+            const diploma = document.getElementById('flashcardDiploma').textContent;
+            const artigo = document.getElementById('flashcardArticle').textContent;
+
+            const matches = legalData.filter(i => i["Diploma Legal"] === diploma && i["Artigo"] === artigo);
+            const bodyHtml = matches.map(m => `
+                <div class="mb-2 text-left">
+                    <span class="font-bold text-amber-600 dark:text-amber-400">${m["Identificador"]}:</span> ${m["Texto do Dispositivo"]}
+                </div>
+            `).join('');
+
+            document.getElementById('flashcardBody').innerHTML = bodyHtml;
+            document.getElementById('revealBtn').classList.add('hidden');
+        }
+
+        function nextFlashcard() {
+            currentFlashcardIndex++;
+            loadFlashcard();
+        }
+
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (json.length === 0) {
+                        showToast('O arquivo Excel enviado está vazio.', 'fa-circle-exclamation text-rose-400');
+                        return;
+                    }
+
+                    // Flexible column mapping/normalization
+                    const normalizedData = json.map(row => {
+                        let diploma = row['Diploma Legal'] || row['diploma'] || row['Norma'] || row['Lei'] || 'Geral';
+                        let artigo = row['Artigo'] || row['artigo'] || row['Art'] || 'Art. 1º';
+                        let tipo = row['Tipo de Dispositivo'] || row['Tipo'] || row['tipo'] || 'Caput';
+                        let identificador = row['Identificador'] || row['ID'] || row['id'] || artigo;
+                        let texto = row['Texto do Dispositivo'] || row['Texto'] || row['texto'] || row['Conteúdo'] || '';
+
+                        return {
+                            "Diploma Legal": String(diploma).trim(),
+                            "Artigo": String(artigo).trim(),
+                            "Tipo de Dispositivo": String(tipo).trim(),
+                            "Identificador": String(identificador).trim(),
+                            "Texto do Dispositivo": String(texto).trim()
+                        };
+                    });
+
+                    legalData = normalizedData;
+                    dataOriginInfo = `Arquivo Importado: "${file.name}"`;
+
+                    populateDiplomaSelects();
+                    applyFilters();
+                    updateGlobalProgress();
+                    generateReadingSchedule();
+                    updateDataSourceBanner();
+
+                    showToast(`Excel importado com sucesso! ${normalizedData.length} dispositivos carregados.`, 'fa-circle-check text-emerald-400');
+                } catch (err) {
+                    console.error(err);
+                    showToast('Erro ao processar arquivo Excel. Verifique a estrutura das colunas.', 'fa-circle-exclamation text-rose-400');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function exportCurrentDataToExcel() {
+            try {
+                const worksheet = XLSX.utils.json_to_sheet(legalData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Vade Mecum");
+                XLSX.writeFile(workbook, "LexData_VadeMecum_Base.xlsx");
+                showToast('Download do arquivo Excel iniciado!', 'fa-download text-amber-400');
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao exportar base para Excel.', 'fa-circle-exclamation text-rose-400');
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700';
+            });
+
+            document.getElementById('view-reader').classList.add('hidden');
+            document.getElementById('view-analytics').classList.add('hidden');
+            document.getElementById('view-goals').classList.add('hidden');
+            document.getElementById('view-flashcards').classList.add('hidden');
+
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.className = 'tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800';
+
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+
+            if (tab === 'analytics') {
+                renderAnalytics();
+            } else if (tab === 'goals') {
+                generateReadingSchedule();
+            } else if (tab === 'flashcards') {
+                loadFlashcard();
+            }
+        }
+
+        function toggleReadingFont() {
+            const container = document.getElementById('articlesContainer');
+            container.classList.toggle('reading-serif');
+            showToast('Fonte de leitura alterada', 'fa-font text-amber-400');
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function showToast(message, iconClass = 'fa-circle-info text-amber-400') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+            toastIcon.className = `fa-solid ${iconClass}`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
